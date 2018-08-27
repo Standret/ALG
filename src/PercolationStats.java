@@ -1,67 +1,75 @@
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
-import edu.princeton.cs.algs4.Stopwatch;
 
-import java.util.Map;
+public class PercolationStats {
 
-public class PercolationStatistics {
+    private double mean;
+    private double stddev;
+    private double confidenceHi;
+    private double confidenceLo;
+    private final int n;
+    private final int t;
 
-    private double[] _steepValue;
-    private int _n;
-    private int _t;
+    public PercolationStats(int n, int t) {
+        if (n < 1 || t < 1)
+            throw new IllegalArgumentException(n + ", " + t);
+        this.n = n;
+        this.t = t;
+
+        doSimulate();
+    }
 
     public static void main(String[] args) {
         int n = Integer.parseInt(args[0]);
         int t = Integer.parseInt(args[1]);
-        PercolationStatistics stat = new PercolationStatistics(n, t);
 
-        System.out.println("start");
-        Stopwatch temp = new Stopwatch();
-        stat.doSimulate();
+        PercolationStats stat = new PercolationStats(n, t);
 
         System.out.println("mean                    = " + stat.mean());
-        System.out.println("stddev                  = " + stat.stdsev());
-        System.out.println("95% confidence interval = [" + (stat.mean() - (1.96 * Math.sqrt(stat.stdsev())) / Math.sqrt(t)) + ", " + (stat.mean() + (1.96 * Math.sqrt(stat.stdsev())) / Math.sqrt(t)) + "]");
-        System.out.println ("elaspes time: " + temp.elapsedTime());
+        System.out.println("stddev                  = " + stat.stddev());
+        System.out.println("95% confidence interval = " + stat.confidenceLo() + ", " + stat.confidenceHi());
     }
 
-    public PercolationStatistics(int n, int t) {
-        if (n < 0 || t < 0)
-             throw new IllegalArgumentException(n + ", " + t);
-        _steepValue = new double[t];
-        _n = n;
-        _t = t;
-    }
+    private void doSimulate() {
+        double[] steepValue = new double[t];
+        for (int i = 0; i < t; ++i) {
 
-    public void doSimulate() {
-        for (int i = 0; i < _t; ++i) {
-
-            Percolation perc = new Percolation(_n);
+            Percolation perc = new Percolation(n);
 
             int runs = 0;
-            for (; i < _n * _n && !perc.percolates(); ++runs) {
+            for (; !perc.percolates(); ++runs) {
                 int column;
                 int row;
 
                 do {
-                    column = 1 + StdRandom.uniform(_n);
-                    row = 1 + StdRandom.uniform(_n);
+                    column = 1 + StdRandom.uniform(n);
+                    row = 1 + StdRandom.uniform(n);
                 } while (perc.isOpen(row, column));
 
                 perc.open(row, column);
             }
 
-            _steepValue[i] = runs / (double)  (_n * _n);
+            steepValue[i] = runs / (double)  (n * n);
         }
+
+        mean = StdStats.mean(steepValue);
+        stddev = StdStats.stddev(steepValue);
+        double confidenceFraction = (1.96 * stddev) / Math.sqrt(t);
+        confidenceLo = mean - confidenceFraction;
+        confidenceHi = mean + confidenceFraction;
     }
 
     public double mean() {
-        return StdStats.mean(_steepValue);
+        return mean;
     }
 
-    public double stdsev() {
-        return StdStats.stddev(_steepValue);
+    public double stddev() {
+        return stddev;
     }
-
-
+    public double confidenceHi() {
+        return confidenceHi;
+    }
+    public double confidenceLo() {
+        return confidenceLo;
+    }
 }
