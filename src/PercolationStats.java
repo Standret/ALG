@@ -1,5 +1,6 @@
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
+import edu.princeton.cs.algs4.Stopwatch;
 
 public class PercolationStats {
 
@@ -7,30 +8,30 @@ public class PercolationStats {
     private double stddev;
     private double confidenceHi;
     private double confidenceLo;
-    private final int n;
-    private final int t;
 
     public PercolationStats(int n, int t) {
         if (n < 1 || t < 1)
             throw new IllegalArgumentException(n + ", " + t);
-        this.n = n;
-        this.t = t;
 
-        doSimulate();
+        doSimulate(n, t);
     }
 
     public static void main(String[] args) {
+        System.out.println("start");
         int n = Integer.parseInt(args[0]);
         int t = Integer.parseInt(args[1]);
+
+        Stopwatch st = new Stopwatch();
 
         PercolationStats stat = new PercolationStats(n, t);
 
         System.out.println("mean                    = " + stat.mean());
         System.out.println("stddev                  = " + stat.stddev());
         System.out.println("95% confidence interval = " + stat.confidenceLo() + ", " + stat.confidenceHi());
+        System.out.println(st.elapsedTime());
     }
 
-    private void doSimulate() {
+    private void doSimulate(int n, int t) {
         double[] steepValue = new double[t];
         for (int i = 0; i < t; ++i) {
 
@@ -62,7 +63,6 @@ public class PercolationStats {
     public double mean() {
         return mean;
     }
-
     public double stddev() {
         return stddev;
     }

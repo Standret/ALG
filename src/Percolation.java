@@ -3,6 +3,7 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 public class Percolation {
 
     private final WeightedQuickUnionUF unionUF;
+    private final WeightedQuickUnionUF unionPercUF;
     private boolean[][] openSite;
     private final int n;
     private int openSites;
@@ -12,6 +13,7 @@ public class Percolation {
             throw new IllegalArgumentException();
         this.n = n;
         unionUF = new WeightedQuickUnionUF((n * n) + 1);
+        unionPercUF = new WeightedQuickUnionUF((n * n) + 2);
         openSite = new boolean[n][n];
     }
 
@@ -24,24 +26,32 @@ public class Percolation {
 
             // top
             if (row == 1) {
-                unionUF.union(getIndex(row, col), 0);
+                unionPercUF.union(0, getIndex(row, col));
+                unionUF.union(0, getIndex(row, col));
             }
             else if (row > 1 && openSite[row - 2][col - 1]) {
+                unionPercUF.union(getIndex(row, col), getIndex(row - 1, col));
                 unionUF.union(getIndex(row, col), getIndex(row - 1, col));
             }
 
             // left
             if (col > 1 && openSite[row - 1][col - 2]) {
+                unionPercUF.union(getIndex(row, col), getIndex(row, col - 1));
                 unionUF.union(getIndex(row, col), getIndex(row, col - 1));
             }
 
             // bottom
-            if (row < n && openSite[row][col - 1]) {
+            if (row == n) {
+                unionPercUF.union(n * n + 1, getIndex(row, col));
+            }
+            else if (row < n && openSite[row][col - 1]) {
+                unionPercUF.union(getIndex(row, col), getIndex(row + 1, col));
                 unionUF.union(getIndex(row, col), getIndex(row + 1, col));
             }
 
             // right
             if (col < n && openSite[row - 1][col]) {
+                unionPercUF.union(getIndex(row, col), getIndex(row, col + 1));
                 unionUF.union(getIndex(row, col), getIndex(row, col + 1));
             }
         }
@@ -63,12 +73,9 @@ public class Percolation {
     public int numberOfOpenSites() {
         return openSites;
     }
+
     public boolean percolates() {
-        for (int i = 0; i < n; ++i) {
-            if (openSite[n - 1][i] && unionUF.connected(0, getIndex(n, i + 1)))
-                return true;
-        }
-        return false;
+        return unionPercUF.connected(0, n * n + 1);
     }
 
     private boolean checkRange(int row, int col) {
